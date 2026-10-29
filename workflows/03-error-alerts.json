@@ -1,0 +1,66 @@
+{
+  "name": "03 · Error Handler → Slack alert",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "c3000000-0000-4000-8000-000000000001",
+      "name": "On Workflow Error",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [0, 300]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": true,
+        "assignments": {
+          "assignments": [
+            { "id": "c1", "name": "slackWebhookUrl", "value": "https://hooks.slack.com/services/XXX/YYY/ZZZ", "type": "string" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c3000000-0000-4000-8000-000000000002",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Turn n8n's error payload into a short, readable alert.\nconst { execution = {}, workflow = {} } = $json;\nconst text = [\n  `:rotating_light: *${workflow.name ?? 'Unknown workflow'}* failed`,\n  `• Node: ${execution.lastNodeExecuted ?? 'unknown'}`,\n  `• Error: ${execution.error?.message ?? 'unknown error'}`,\n  `• Mode: ${execution.mode ?? 'unknown'} · Execution ${execution.id ?? '-'}`,\n  execution.url ? `<${execution.url}|Open execution in n8n>` : '',\n].filter(Boolean).join('\\n');\nreturn { json: { text } };"
+      },
+      "id": "c3000000-0000-4000-8000-000000000003",
+      "name": "Format Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Config').first().json.slackWebhookUrl }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { text: $json.text } }}",
+        "options": {}
+      },
+      "id": "c3000000-0000-4000-8000-000000000004",
+      "name": "Send Slack Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 300],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000
+    }
+  ],
+  "connections": {
+    "On Workflow Error": { "main": [[{ "node": "Config", "type": "main", "index": 0 }]] },
+    "Config": { "main": [[{ "node": "Format Alert", "type": "main", "index": 0 }]] },
+    "Format Alert": { "main": [[{ "node": "Send Slack Alert", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "pinData": {}
+}
