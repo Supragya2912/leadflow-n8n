@@ -1,14 +1,14 @@
 # LeadFlow: n8n + GoHighLevel Lead Automation
 
-Three importable n8n workflows that match common Upwork automation jobs,
-plus a 4-week learning plan and a checklist for turning them into Upwork
-portfolio pieces.
+Production-style n8n workflows that capture, qualify and route leads into
+GoHighLevel. They validate input, prevent duplicate contacts, retry failed
+API calls and send an alert when something breaks.
 
-| # | Workflow | Upwork job it matches | Skills it shows |
-|---|----------|-----------------------|-----------------|
-| 01 | Lead intake → GHL | "Connect my website/Typeform/Facebook leads to GoHighLevel" | Webhook, expressions, IF, Code, HTTP Request, GHL API v2, retries |
-| 02 | Google Sheets → GHL sync | "Import/sync contacts from a spreadsheet into my CRM" | Schedule trigger, Loop Over Items, rate limiting, writing results back |
-| 03 | Error handler → Slack | "What happens when it breaks?" (every client asks) | Error Trigger, error workflows, alerting |
+| # | Workflow | What it does | Built with |
+|---|----------|--------------|------------|
+| 01 | Lead intake → GHL | Webhook lead → validate & score → upsert contact → tags & owner → pipeline opportunity | Webhook, Code (JS), IF, HTTP Request, GHL API v2 |
+| 02 | Google Sheets → GHL sync | Hourly batch sync of new rows, rate-limit safe, writes results back to the sheet | Schedule, Loop Over Items, Google Sheets, Wait |
+| 03 | Error handler → Slack | Posts a readable alert with the failing node and a link to the run | Error Trigger, Code, HTTP Request |
 
 ---
 
@@ -88,57 +88,7 @@ Create the Slack incoming-webhook URL at https://api.slack.com/apps → *Incomin
 
 ---
 
-## 3. Learning plan (about 4 weeks, 1–2 hours a day)
-
-| Week | Learn | Build or practise |
-|------|-------|-------------------|
-| 1 | n8n **Level 1** course (docs.n8n.io/courses). Triggers: Webhook, Schedule, Google Sheets/Forms trigger. Expressions: `{{ $json.email }}`, `$('Node Name').item.json`, `$now` | Import 01, run it against the mock server, and read every expression in it. Then rebuild it from scratch without looking. |
-| 2 | **Level 2** course. IF, Switch, Merge, Loop Over Items, item linking | Import 02 and run it against a real sheet. Then add a **Switch** that routes leads to different GHL pipelines by `source`. |
-| 3 | HTTP Request node in depth: auth, pagination, rate limits. The Code node: `$input.all()`, returning `[{json}]` | Call 5 new GHL endpoints yourself: search contacts, update an opportunity's stage, add a note, create a task, and list pipelines. |
-| 4 | Error workflows, retries, `onError: continue`, credentials, and n8n's Executions log | Wire 03 to 01 and 02. Record Loom demos and publish everything (see section 4). |
-
-Study 2–3 templates a week from https://n8n.io/workflows. Search "GoHighLevel", "lead", "CRM", "AI agent".
-Open each template and work out why every node is there.
-
-### Next portfolio pieces (in order of Upwork demand)
-1. **AI lead qualifier.** Add an *AI Agent* or *OpenAI/Anthropic* node to 01 that reads `message`, writes a summary, and sets the score. "AI automation" is the hottest keyword on Upwork right now.
-2. **Missed-call text-back / appointment reminder.** GHL webhook → n8n → SMS through GHL's conversations API.
-3. **Facebook Lead Ads / Typeform → GHL + Slack notify.** Same pattern as 01 with a different trigger.
-4. **Stripe payment → GHL opportunity "Won" + invoice email.**
-
----
-
-## 4. Publishing for Upwork
-
-### A. GitHub (your technical proof)
-1. Create a public repo, for example `n8n-ghl-automations`, and push this folder.
-2. **Before you push**, make sure the Config nodes hold only placeholders.
-   n8n does *not* export credential secrets, but IDs and URLs you typed into nodes **are** exported.
-3. Add a screenshot of each workflow canvas to `screenshots/`.
-
-### B. Loom video (the thing that actually wins jobs)
-Record 2–3 minutes per workflow:
-1. State the client problem in one sentence.
-2. Show the canvas.
-3. Run it live: send the curl, then show the contact, tags and opportunity appearing in GHL.
-4. Break it on purpose (`fail@test.com`) and show the Slack alert.
-5. Close with what you would customise for their business.
-
-### C. Upwork portfolio item (Profile → Portfolio → Add)
-For each project:
-- **Title:** "GoHighLevel Lead Intake Automation with n8n (Validation, Scoring, Pipeline)"
-- **Your role:** "Automation Engineer – designed and built the full workflow"
-- **Description:** *Problem → Solution → Result*. For example: "Website leads were typed into GHL by hand and often duplicated. Built an n8n workflow that validates and scores each lead, upserts it into GHL with tags, and opens a pipeline opportunity for qualified leads in under 2 seconds, with automatic retries and Slack alerts on failure."
-- **Skills:** n8n, GoHighLevel, API Integration, JavaScript, Automation, Zapier (clients search for it, so list it)
-- **Media:** canvas screenshot, a GHL "after" screenshot, and the Loom link.
-
-### D. Profile and proposals
-- **Headline:** "n8n & GoHighLevel Automation Expert | CRM, Lead Flows, AI Workflows"
-- **Search terms to use:** `n8n`, `GoHighLevel`, `GHL automation`, `make.com`, `zapier`, `workflow automation`, `AI agent`.
-- **Proposal template** (keep it under 120 words and personalise the first line):
-
-> Hi [Name], you need [their exact problem in your words]. I built almost exactly this: [link to the matching Loom]. Leads come in by webhook, get validated, are upserted into GHL so there are no duplicates, get tagged, and land in the right pipeline stage. Failures retry automatically and alert Slack.
-> For you I'd [1–2 specifics from their post]. Quick question: [one smart question about their setup, e.g. "Is the form on WordPress or Webflow?"].
-> I can have a working first version in [X] days.
-
-Start with small fixed-price jobs ($50–$200) to earn your first reviews. Then raise your rates.
+## Roadmap
+- AI lead qualification: summarise the lead's message and adjust the score with an LLM node
+- More lead sources: Facebook Lead Ads, Typeform, Calendly
+- Missed-call text-back and appointment reminders through GHL conversations
